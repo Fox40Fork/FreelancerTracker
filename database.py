@@ -66,3 +66,15 @@ def insertClients(clientsDict, cursor):    #i ovo
             info["phone"],
             info["address"],
         ))
+
+def insertProjects(projectsDict, cursor):    #i ovo
+    for (user_id, client_id), info in projectsDict.items():
+        cursor.execute('''
+        INSERT INTO clients (user_id, client_id, title, description)
+        VALUES (?, ?, ?, ?)
+        ''', (
+            user_id,
+            client_id,
+            info["title"],
+            info["description"]
+        ))
