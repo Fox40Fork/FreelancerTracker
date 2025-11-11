@@ -28,7 +28,7 @@ def createDatabase():
         name TEXT NOT NULL,
         email TEXT,
         phone TEXT,
-        address TEXT,
+        address TEXT
     )
     ''')
 
