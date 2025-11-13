@@ -26,9 +26,12 @@ def getUsers():
 def createUser(user: UserCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO users (id, username, email, password)"
-                "VALUES (?, ?, ?, ?)",
-                (user.id, user.username, user.email, user.password))
+    cursor.execute("INSERT INTO users (username, email, password)"
+                "VALUES (?, ?, ?)",
+                (user.username, user.email, user.password))
+    conn.commit()
+    user_id = cursor.lastrowid
+    return User(id = user_id, username = user.username, email = user.email, password = user.password)
 
 
 @router.put("/{id}", response_model=User)

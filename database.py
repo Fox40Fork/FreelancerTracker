@@ -28,7 +28,8 @@ def createDatabase():
         name TEXT NOT NULL,
         email TEXT,
         phone TEXT,
-        address TEXT
+        address TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id)
     )
     ''')
 
@@ -38,7 +39,9 @@ def createDatabase():
         user_id INTEGER NOT NULL,
         client_id INTEGER NOT NULL,
         title TEXT NOT NULL,
-        description TEXT
+        description TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (client_id) REFERENCES clients(id)
     )
     ''')
 
@@ -52,51 +55,3 @@ def createDatabase():
     ''')
 
     return conn, cursor
-
-def insertUsers(usersDict, cursor):
-    for name, info in usersDict.items():
-        cursor.execute('''
-        INSERT INTO users (name, email, password)
-        VALUES (?, ?, ?)
-        ''', (
-            name,
-            info["email"],
-            info["password"]
-        ))
-
-def insertClients(clientsDict, cursor):
-    for (name, user_id), info in clientsDict.items():
-        cursor.execute('''
-        INSERT INTO clients (user_id, name, email, phone, address)
-        VALUES (?, ?, ?, ?, ?)
-        ''', (
-            name,
-            user_id,
-            info["email"],
-            info["phone"],
-            info["address"],
-        ))
-
-def insertProjects(projectsDict, cursor):
-    for (user_id, client_id), info in projectsDict.items():
-        cursor.execute('''
-        INSERT INTO clients (user_id, client_id, title, description)
-        VALUES (?, ?, ?, ?)
-        ''', (
-            user_id,
-            client_id,
-            info["title"],
-            info["description"]
-        ))
-
-def insertInvoices(invoicesDict, cursor):
-    for invoice_number, info in invoicesDict.items():
-        cursor.execute('''
-        INSERT INTO clients (amount, date, status)
-        VALUES (?, ?, ?)
-        ''', (
-            invoice_number,
-            info["amount"],
-            info["date"],
-            info["status"]
-        ))
