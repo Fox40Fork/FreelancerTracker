@@ -17,6 +17,7 @@ st.write("Manage your projects")
 st.markdown("# Projects")
 st.sidebar.warning("You can navigate through the pages here.")
 
+load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
 
 

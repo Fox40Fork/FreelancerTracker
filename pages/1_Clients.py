@@ -1,8 +1,6 @@
 import streamlit as st
 import requests
 import pandas as pd
-from datetime import datetime
-import plotly.express as px
 from dotenv import load_dotenv
 import os
 
@@ -14,6 +12,7 @@ st.sidebar.warning("You can navigate through the pages here.")
 
 st.write("Manage your clients")
 
+load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
 
 def getClients():
@@ -47,6 +46,8 @@ def deleteClient(user_id):
 
 # User Interface
 clients = getClients()
+def get_client_by_title(title, projects):
+    return next((c for c in clients if c['title'] == title), None)
 
 if clients:
     st.subheader("Client List")
@@ -66,6 +67,33 @@ if st.button("Add Client"):
     addClient(clientData)
     st.rerun()
 
+action = st.radio("Select Action", ["Update Project", "Delete Project"])
+
+titles = [c['title'] for c in clients]
+selectedTitle = st.selectbox(f"Select Client to {action.split()[0]}", options=titles)
+
+if selectedTitle:
+    project = get_client_by_title(selectedTitle, clients)
+
+    if action == "Update Project":
+        updated_name = st.text_input("Name", value=project['name'])
+        updated_email = st.text_input("Email", value=project['Email'])
+        updated_phone = st.text_input("Phone Number", value=project.get('phone'))
+        updated_address = st.text_input("Address", value=project['address'])
+
+        if st.button("Update Project"):
+            updateClient(project['id'], {
+                "name": updated_name,
+                "email": updated_email,
+                "phone": updated_phone,
+                "address": updated_address
+            })
+
+    elif action == "Delete Client":
+        if st.button("Delete Client"):
+            deleteClient(project['id'])
+
+"""
 st.subheader("Update Client")
 if clients:
     client_ids = [client["id"] for client in clients]
@@ -85,3 +113,4 @@ if clients:
     if st.button("Delete Client"):
         deleteClient(delete_id)
         st.rerun()
+"""
