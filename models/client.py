@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 class ClientBase(BaseModel):
-    user_id: int
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None

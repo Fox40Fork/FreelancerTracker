@@ -29,8 +29,8 @@ def createClient(client: ClientCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO clients (user_id, name, email, phone, address)"
-                    "VALUES (?, ?, ?, ?, ?)",
+        cursor.execute("INSERT INTO clients (name, email, phone, address)"
+                    "VALUES (?, ?, ?, ?)",
                     (client.user_id, client.name, client.email, client.phone, client.address))
     except sqlite3.IntegrityError:
         conn.close()
@@ -39,6 +39,7 @@ def createClient(client: ClientCreate):
             detail=f"The client '{client.name}' already exists."
         )
     finally:
+        conn.commit()
         conn.close()
 
 @router.put("/{user_id}", response_model=Client)
