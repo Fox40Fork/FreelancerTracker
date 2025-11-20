@@ -46,7 +46,7 @@ def deleteClient(user_id):
 
 # User Interface
 clients = getClients()
-def get_client_by_title(title, projects):
+def get_client_by_title(title, clients):
     return next((c for c in clients if c['title'] == title), None)
 
 if clients:

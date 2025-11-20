@@ -10,7 +10,7 @@ router = APIRouter()
 
 @router.get('/', response_model = List[Client])
 
-def getAuthors():
+def getClients():
     conn = getDBConnection()
     cursor = conn.cursor()
     cursor.execute("SELECT id, user_id, name, email, phone, address FROM clients")
