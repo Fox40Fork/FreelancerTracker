@@ -8,3 +8,6 @@ pandas
 plotly
 streamlit
 numpy
+uuid
+bcrypt
+passlib
