@@ -29,17 +29,32 @@ def createClient(client: ClientCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO clients (name, email, phone, address)"
-                    "VALUES (?, ?, ?, ?)",
-                    (client.user_id, client.name, client.email, client.phone, client.address))
-    except sqlite3.IntegrityError:
-        conn.close()
+        cursor.execute(
+            "INSERT INTO clients (user_id, name, email, phone, address) VALUES (?, ?, ?, ?, ?)",
+            (client.user_id, client.name, client.email, client.phone, client.address)
+        )
+        conn.commit()
+
+        client_id = cursor.lastrowid
+        cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+        row = cursor.fetchone()
+
+        return Client(
+            id=row[0],
+            user_id=row[1],
+            name=row[2],
+            email=row[3],
+            phone=row[4],
+            address=row[5]
+        )
+
+    except Exception as e:
+        conn.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"The client '{client.name}' already exists."
+            detail=f"{e}"
         )
     finally:
-        conn.commit()
         conn.close()
 
 @router.put("/{user_id}", response_model=Client)

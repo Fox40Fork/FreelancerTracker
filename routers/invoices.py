@@ -17,18 +17,19 @@ def getInvoices():
     invoices = cursor.fetchall()
     return [{
         "invoice_number": invoice[0],
-        "amount": invoice[1],
-        "date": invoice[2],
-        "status": invoice[3]
+        "client_id": invoice[1],
+        "amount": invoice[2],
+        "date": invoice[3],
+        "status": invoice[4]
     } for invoice in invoices]
 
 @router.post("/", response_model = Invoice)
 def createInvoice(invoice: InvoiceCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO invoices (invoice_number, amount, date, status)"
-                "VALUES (?, ?, ?, ?)",
-                (invoice.invoice_number, invoice.amount, invoice.date, invoice.status))
+    cursor.execute("INSERT INTO invoices (invoice_number, client_id, amount, date, status)"
+                "VALUES (?, ?, ?, ?, ?)",
+                (invoice.invoice_number, invoice.client_id, invoice.amount, invoice.date, invoice.status))
 
 
 @router.put("/{invoice_number}", response_model=Invoice)
@@ -36,9 +37,9 @@ def updateInvoice(invoice_number: int, invoice: InvoiceCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
     cursor.execute(
-        "UPDATE invoices SET invoice_number = ?, amount = ?, date = ?, status = ?"
+        "UPDATE invoices SET invoice_number = ?, client_id = ?, amount = ?, date = ?, status = ?"
         "WHERE invoice_number = ?",
-        (invoice.invoice_number, invoice.amount, invoice.date, invoice.status))
+        (invoice.invoice_number, invoice.client_id, invoice.amount, invoice.date, invoice.status))
     if cursor.rowcount == 0:
         conn.close()
         raise HTTPException(status_code=404, detail="Invoice not found")

@@ -24,21 +24,35 @@ def getProjects():
     } for project in projects]
 
 @router.post("/", response_model = Project)
-def createProject(project: Project):
+def createProject(project: ProjectCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO clients (user_id, client_id, title, description)"
-                    "VALUES (?, ?, ?, ?)",
-                    (project.user_id, project.client_id, project.title, project.description))
-    except sqlite3.IntegrityError:
-        conn.close()
+        cursor.execute(
+            "INSERT INTO projects (user_id, client_id, title, description) VALUES (?, ?, ?, ?)",
+            (project.user_id, project.client_id, project.title, project.description)
+        )
+        conn.commit()
+
+        project_id = cursor.lastrowid
+        cursor.execute("SELECT * FROM projects WHERE id = ?", (project_id,))
+        row = cursor.fetchone()
+
+        return Project(
+            id=row[0],
+            user_id=row[1],
+            client_id=row[2],
+            title=row[3],
+            description=row[4]
+        )
+
+    except Exception as e:
+        conn.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"The project '{project.name}' already exists."
+            detail=f"Failed to add project: {e}"
         )
     finally:
-        conn.commit()
         conn.close()
 
 @router.put("/{user_id}", response_model=Project)
