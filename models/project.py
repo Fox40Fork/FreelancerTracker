@@ -1,9 +1,11 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 
 class ProjectBase(BaseModel):
+    client_id: int
+    user_id: int
     title: str
-    description: str
+    description: Optional[str] = None
 
 class ProjectCreate(ProjectBase):
     pass
