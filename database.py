@@ -48,10 +48,21 @@ def createDatabase():
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS invoices (
         invoice_number INTEGER PRIMARY KEY AUTOINCREMENT,
+        client_id INTEGER NOT NULL,
         amount DECIMAL(10,2),
         date DATE,
-        status VARCHAR(25)
+        status VARCHAR(25),
+        FOREIGN KEY (client_id) REFERENCES clients(id)
     )
     ''')
+
+    #cursor.execute('''
+    #CREATE TABLE IF NOT EXISTS sessions (
+        #session_id TEXT PRIMARY KEY,
+        #username TEXT NOT NULL
+        #created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        #FOREIGN_KEY (username) REFERENCES users(username)
+    #)
+    #''')
 
     return conn, cursor
