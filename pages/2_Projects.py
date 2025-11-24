@@ -17,38 +17,67 @@ st.write("Manage your projects")
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
 
-
 def getProjects():
-    response = requests.get(f"{BASE_URL}/projects/")
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Failed to fetch projects.")
+    try:
+        response = requests.get(f"{BASE_URL}/projects/")
+        response.raise_for_status()  # raises error for non-200 status codes
+        try:
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            st.error("Response is not valid JSON.")
+            st.write("Response text:", response.text[:500])
+            return []
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch projects: {e}")
         return []
 
 
 def addProject(projectData):
-    response = requests.post(f"{BASE_URL}/projects/", json=projectData)
-    if response.status_code == 200:
-        st.success(f"Project '{projectData['title']}' added successfully!")
-    else:
-        st.error(f"Failed to add project: {response.json().get('detail', 'Unknown error')}")
+    try:
+        response = requests.post(f"{BASE_URL}/projects/", json=projectData)
+        response.raise_for_status()
+        try:
+            st.success(f"Project '{projectData['title']}' added successfully!")
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            st.error("Server response is not valid JSON.")
+            st.write("Response text:", response.text[:500])
+            return None
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to add project: {e}")
+        return None
 
 
 def updateProject(user_id, projectData):
-    response = requests.put(f"{BASE_URL}/projects/{user_id}", json=projectData)
-    if response.status_code == 200:
-        st.success(f"Project '{projectData['title']}' updated successfully!")
-    else:
-        st.error(f"Failed to update project: {response.json().get('detail', 'Unknown error')}")
+    try:
+        response = requests.put(f"{BASE_URL}/projects/{user_id}", json=projectData)
+        response.raise_for_status()
+        try:
+            st.success(f"Project '{projectData['title']}' updated successfully!")
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            st.error("Server response is not valid JSON.")
+            st.write("Response text:", response.text[:500])
+            return None
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to update project: {e}")
+        return None
 
 
 def deleteProject(user_id):
-    response = requests.delete(f"{BASE_URL}/projects/{user_id}")
-    if response.status_code == 200:
-        st.success("Project deleted successfully!")
-    else:
-        st.error(f"Failed to delete project: {response.json().get('detail', 'Unknown error')}")
+    try:
+        response = requests.delete(f"{BASE_URL}/projects/{user_id}")
+        response.raise_for_status()
+        try:
+            st.success("Project deleted successfully!")
+            return response.json()  # optional, in case backend returns JSON
+        except requests.exceptions.JSONDecodeError:
+            st.warning("Project deleted, but server response is not JSON.")
+            st.write("Response text:", response.text[:500])
+            return None
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to delete project: {e}")
+        return None
 
 
 # User Interface:
@@ -66,16 +95,19 @@ st.subheader("Add New Project")
 newTitle = st.text_input("Title")
 newDescription = st.text_area("Description")
 newClientID = st.number_input("Client ID", min_value=1, step=1)
+newUserId = st.number_input("User ID", min_value=1, step=1)
 
 if st.button("Add Project"):
     if newTitle.strip():
-        addProject({
-            "title": newTitle,
-            "client_id": newClientID,
-            "description": newDescription
-        })
+        projectData = {
+            "title" : newTitle,
+            "description" : newDescription,
+            "client_id" : newClientID,
+            "user_id" : newUserId
+        }
+        addProject(projectData)
     else:
-        st.error("Title cannot be empty.")
+        st.error("The title is empty or already existing!")
 
 # --- Update or Delete Project ---
 action = st.radio("Select Action", ["Update Project", "Delete Project"])

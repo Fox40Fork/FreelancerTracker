@@ -16,101 +16,128 @@ load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
 
 def getClients():
-    response = requests.get(f"{BASE_URL}/clients/")
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Failed to fetch clients.")
+    try:
+        response = requests.get(f"{BASE_URL}/clients/")
+        response.raise_for_status()  # Raises an exception for non-200 responses
+        try:
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            st.error("Response from server is not valid JSON.")
+            st.write("Response text:", response.text[:500])  # Preview the response
+            return []
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch clients: {e}")
         return []
 
+
 def addClient(clientData):
-    response = requests.post(f"{BASE_URL}/clients/", json=clientData)
-    if response.status_code == 200:
-        st.success(f"Client '{clientData['name']}' added successfully!")
-    else:
-        st.error(f"Failed to add client: {response.json().get('detail', 'Unknown error')}")
+    try:
+        response = requests.post(f"{BASE_URL}/clients/", json=clientData)
+        response.raise_for_status()
+        try:
+            st.success(f"Client '{clientData['name']}' added successfully!")
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            st.error("Server response is not valid JSON.")
+            st.write("Response text:", response.text[:500])
+            return None
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to add client: {e}")
+        return None
+
 
 def updateClient(user_id, clientData):
-    response = requests.put(f"{BASE_URL}/clients/{user_id}", json=clientData)
-    if response.status_code == 200:
-        st.success(f"Client '{clientData['name']}' updated successfully!")
-    else:
-        st.error(f"Failed to update client: {response.json().get('detail', 'Unknown error')}")
+    try:
+        response = requests.put(f"{BASE_URL}/clients/{user_id}", json=clientData)
+        response.raise_for_status()
+        try:
+            st.success(f"Client '{clientData['name']}' updated successfully!")
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            st.error("Server response is not valid JSON.")
+            st.write("Response text:", response.text[:500])
+            return None
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to update client: {e}")
+        return None
+
 
 def deleteClient(user_id):
-    response = requests.delete(f"{BASE_URL}/clients/{user_id}")
-    if response.status_code == 200:
-        st.success("Client deleted successfully!")
-    else:
-        st.error(f"Failed to delete client: {response.json().get('detail', 'Unknown error')}")
+    try:
+        response = requests.delete(f"{BASE_URL}/clients/{user_id}")
+        response.raise_for_status()
+        try:
+            st.success("Client deleted successfully!")
+            return response.json()  # optional, if backend returns JSON
+        except requests.exceptions.JSONDecodeError:
+            st.warning("Client deleted, but server response is not JSON.")
+            st.write("Response text:", response.text[:500])
+            return None
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to delete client: {e}")
+        return None
 
 # User Interface
 clients = getClients()
-def get_client_by_title(title, clients):
-    return next((c for c in clients if c['title'] == title), None)
 
-if clients:
+
+def get_client_by_name(name, clients):  #get every client
+    return next((c for c in clients if c['name'] == name), None)
+
+
+if clients:  #show clients
     st.subheader("Client List")
     df = pd.DataFrame(clients)
     st.dataframe(df)
 else:
     st.write("No clients found.")
 
-st.subheader("Add New Client")
+st.subheader("Add New Client") #as the subheader suggests, add new client
+userId = st.number_input("User ID") # !!! This has to be removed since I have to make a Login system, for now inserted manually
 name = st.text_input("Client Name")
 email = st.text_input("Email")
 phone = st.text_input("Phone")
 address = st.text_input("Address")
 
 if st.button("Add Client"):
-    clientData = {"name": name, "email": email, "phone": phone, "address": address}
-    addClient(clientData)
-    st.rerun()
+    if userId and name.strip():
+        clientData = {  #data from the client just added
+            "user_id" : userId,
+            "name" : name,
+            "email" : email,
+            "phone" : phone,
+            "address" : address
+        }
+        addClient(clientData) #send all the data to the database
+    else:
+        st.error("The User ID or Name are empty or already existing!")
 
-action = st.radio("Select Action", ["Update Project", "Delete Project"])
-
-titles = [c['title'] for c in clients]
-selectedTitle = st.selectbox(f"Select Client to {action.split()[0]}", options=titles)
-
-if selectedTitle:
-    project = get_client_by_title(selectedTitle, clients)
-
-    if action == "Update Project":
-        updated_name = st.text_input("Name", value=project['name'])
-        updated_email = st.text_input("Email", value=project['Email'])
-        updated_phone = st.text_input("Phone Number", value=project.get('phone'))
-        updated_address = st.text_input("Address", value=project['address'])
-
-        if st.button("Update Project"):
-            updateClient(project['id'], {
-                "name": updated_name,
-                "email": updated_email,
-                "phone": updated_phone,
-                "address": updated_address
-            })
-
-    elif action == "Delete Client":
-        if st.button("Delete Client"):
-            deleteClient(project['id'])
-
-"""
-st.subheader("Update Client")
 if clients:
-    client_ids = [client["id"] for client in clients]
-    selected_id = st.selectbox("Select Client to Update", client_ids)
-    newName = st.text_input("New Client Name")
-    newEmail = st.text_input("New Email")
-    newPhone = st.text_input("New Phone")
-    newAddress = st.text_input("New Address")
-    if st.form_submit_button("Update Client"):
-        clientData = {"name": newName, "email": newEmail, "phone": newPhone, "address": newAddress}
-        updateClient(selected_id, clientData)
-        st.rerun()
+    action = st.radio("Select Action", ["Update Client", "Delete Client"])
 
-st.subheader("Delete Client")
-if clients:
-    delete_id = st.selectbox("Select Client to Delete", client_ids, key="delete")
-    if st.button("Delete Client"):
-        deleteClient(delete_id)
-        st.rerun()
-"""
+    names = [c['name'] for c in clients]
+    selectedTitle = st.selectbox(f"Select Client to {action.split()[0]}", options=names)
+
+    if selectedTitle:
+        client = get_client_by_name(selectedTitle, clients)
+
+        if action == "Update Client":
+            updated_userId = st.number_input("User ID", value=client['user_id'])
+            updated_name = st.text_input("Name", value=client['name'])
+            updated_email = st.text_input("Email", value=client['email'])
+            updated_phone = st.text_input("Phone Number", value=client.get('phone'))
+            updated_address = st.text_input("Address", value=client['address'])
+
+            if st.button("Update Client"):
+                clientInformation = {
+                    "user_id" : updated_userId,
+                    "name" : updated_name,
+                    "email" : updated_email,
+                    "phone" : updated_phone,
+                    "address" : updated_address
+                }
+                updateClient(updated_userId, clientInformation)
+
+        elif action == "Delete Client":
+            if st.button("Delete Client"):
+                deleteClient(client['id'])
