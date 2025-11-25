@@ -6,18 +6,37 @@ import plotly.express as px
 import plotly.graph_objects as go
 from dotenv import load_dotenv
 import os
+from utils import logout, login, register, is_authenticated
 
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
 
 st.set_page_config(
-    page_title = "Dashboard"
+    page_title="Dashboard"
 )
+
+if not is_authenticated():
+    st.header("Welcome to Freelancer Invoice Tracker")
+    st.write("Please log in or register to access the dashboard.")
+
+    tab1, tab2 = st.tabs(["Login", "Register"])
+
+    with tab1:
+        login()
+
+    with tab2:
+        register()
+
+    st.stop()  # Stop execution if not authenticated
 
 st.header("Dashboard")
 st.write(f"The dashboard for the Freelancer Invoice/Income Tracker app.")
 
 st.sidebar.warning("You can navigate through the pages here.")
+
+if st.sidebar.button("Logout", type="primary", use_container_width=True):
+    logout()
+
 
 def getClients():
     try:
@@ -32,6 +51,7 @@ def getClients():
     except requests.exceptions.RequestException as e:
         st.error(f"Failed to fetch clients: {e}")
         return []
+
 
 def getInvoices():
     try:
