@@ -93,6 +93,7 @@ st.subheader("Add New Invoice")
 newAmount = st.number_input("Amount")
 newClientId = st.number_input("Client ID", min_value = 1, step = 1)
 newDate = st.date_input("Date")
+newStatus = st.text_input("Status")
 newInvoiceNumber = st.number_input("Invoice Number", min_value=1, step=1)
 
 if st.button("Add Invoice"):
@@ -101,7 +102,8 @@ if st.button("Add Invoice"):
             "client_id": newClientId,
             "amount": newAmount,
             "date": newDate.isoformat(),
-            "invoice_number": newInvoiceNumber
+            "invoice_number": newInvoiceNumber,
+            "status" : newStatus
         }
         addInvoice(invoiceData)
     else:
@@ -121,13 +123,15 @@ if selectedNumber:
         updated_date = st.date_input("Date", value=invoice('date'))
         updated_invoiceNumber = st.number_input("Invoice Number", min_value=1, step=1, value=invoice['invoice_number'])
         updated_clientId = st.date_input("Client ID", value=invoice('client_id'))
+        updated_status = st.text_input("Status", value=invoice('status'))
 
         if st.button("Update Invoice"):
             updateInvoice(invoice['id'], {
                 "client_id": updated_clientId,
                 "amount": updated_amount,
                 "date": updated_date.isoformat(),
-                "invoice_number": updated_invoiceNumber
+                "invoice_number": updated_invoiceNumber,
+                "status" : updated_status
             })
 
     elif action == "Delete Invoice":
