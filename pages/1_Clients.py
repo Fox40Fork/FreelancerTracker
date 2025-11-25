@@ -80,7 +80,6 @@ def deleteClient(user_id):
 # User Interface
 clients = getClients()
 
-
 def get_client_by_name(name, clients):  #get every client
     return next((c for c in clients if c['name'] == name), None)
 
@@ -93,7 +92,7 @@ else:
     st.write("No clients found.")
 
 st.subheader("Add New Client") #as the subheader suggests, add new client
-userId = st.number_input("User ID") # !!! This has to be removed since I have to make a Login system, for now inserted manually
+userId = st.number_input("User ID", min_value=1, step=1) # !!! This has to be removed since I have to make a Login system, for now inserted manually
 name = st.text_input("Client Name")
 email = st.text_input("Email")
 phone = st.text_input("Phone")
@@ -122,7 +121,7 @@ if clients:
         client = get_client_by_name(selectedTitle, clients)
 
         if action == "Update Client":
-            updated_userId = st.number_input("User ID", value=client['user_id'])
+            updated_userId = st.number_input("User ID", min_value=1, step = 1, value=client['user_id'])
             updated_name = st.text_input("Name", value=client['name'])
             updated_email = st.text_input("Email", value=client['email'])
             updated_phone = st.text_input("Phone Number", value=client.get('phone'))

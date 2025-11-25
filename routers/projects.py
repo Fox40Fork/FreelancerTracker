@@ -56,25 +56,25 @@ def createProject(project: ProjectCreate):
         conn.close()
 
 @router.put("/{user_id}", response_model=Project)
-def updateProject(user_id: int, project: ProjectCreate):
+def updateProject(project_id: int, project: ProjectCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
     cursor.execute(
         "UPDATE projects SET user_id = ?, client_id = ?, title = ?, description = ?"
         "WHERE id = ?",
-        (project.user_id, project.client_id, project.title, project.description))
+        (project.user_id, project.client_id, project.title, project.description, project_id))
     if cursor.rowcount == 0:
         conn.close()
         raise HTTPException(status_code=404, detail="Project not found")
     conn.commit()
     conn.close()
-    return Project(id=user_id, **project.dict())
+    return Project(id=project_id, **project.model_dump())
 
 @router.delete("/{user_id}", response_model=dict)
-def deleteProject(user_id: int):
+def deleteProject(project_id: int):
     conn = getDBConnection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM projects WHERE id = ?", (user_id,))
+    cursor.execute("DELETE FROM projects WHERE id = ?", (project_id,))
     if cursor.rowcount == 0:
         conn.close()
         raise HTTPException(status_code=404, detail="Project not found")

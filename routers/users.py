@@ -13,7 +13,7 @@ router = APIRouter()
 def getUsers():
     conn = getDBConnection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, username, email, password FROM invoices")
+    cursor.execute("SELECT id, username, email, password FROM users")
     users = cursor.fetchall()
     return [{
         "id": user[0],

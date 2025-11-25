@@ -15,11 +15,11 @@ class UserResponse(UserBase):
 class User(UserBase):
     id: int
 
-class UserRegister(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
+#class UserRegister(BaseModel):
+    #username: str
+    #email: EmailStr
+    #password: str
 
-class UserLogin(BaseModel):
-    username_or_email: str  # login with username or email
-    password: str
+#class UserLogin(BaseModel):
+    #username_or_email: str  # login with username or email
+    #password: str

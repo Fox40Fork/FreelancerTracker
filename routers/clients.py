@@ -58,25 +58,25 @@ def createClient(client: ClientCreate):
         conn.close()
 
 @router.put("/{user_id}", response_model=Client)
-def updateClient(user_id: int, client: ClientCreate):
+def updateClient(client_id: int, client: ClientCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
     cursor.execute(
-        "UPDATE clients SET user_id = ?, name = ?, email = ?, phone = ?, address = ?"
+        "UPDATE clients SET user_id = ?, name = ?, email = ?, phone = ?, address = ? "
         "WHERE id = ?",
-        (client.user_id, client.name, client.email, client.phone, client.address))
+        (client.user_id, client.name, client.email, client.phone, client.address, client_id))
     if cursor.rowcount == 0:
         conn.close()
         raise HTTPException(status_code=404, detail="Client not found")
     conn.commit()
     conn.close()
-    return Client(id=user_id, **client.dict())
+    return Client(id=client_id, **client.model_dump())
 
 @router.delete("/{user_id}", response_model=dict)
-def deleteClient(user_id: int):
+def deleteClient(client_id: int):
     conn = getDBConnection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM clients WHERE id = ?", (user_id,))
+    cursor.execute("DELETE FROM clients WHERE id = ?", (client_id,))
     if cursor.rowcount == 0:
         conn.close()
         raise HTTPException(status_code=404, detail="Client not found")

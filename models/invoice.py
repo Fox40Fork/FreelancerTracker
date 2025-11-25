@@ -4,6 +4,8 @@ from decimal import Decimal
 from datetime import date
 
 class InvoiceBase(BaseModel):
+    invoice_number: int
+    client_id: int
     amount: Decimal
     date: date
     status: str
@@ -12,7 +14,7 @@ class InvoiceCreate(InvoiceBase):
     pass
 
 class InvoiceResponse(InvoiceBase):
-    invoice_number: int
+    id: int
 
 class Invoice(InvoiceBase):
-    invoice_number: int
+    id: int

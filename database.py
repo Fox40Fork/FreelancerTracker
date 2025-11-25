@@ -47,7 +47,8 @@ def createDatabase():
 
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS invoices (
-        invoice_number INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        invoice_number INTEGER NOT NULL UNIQUE,
         client_id INTEGER NOT NULL,
         amount DECIMAL(10,2),
         date DATE,

@@ -103,7 +103,7 @@ if st.button("Add Invoice"):
             "date": newDate.isoformat(),
             "invoice_number": newInvoiceNumber
         }
-        updateInvoice(newInvoiceNumber, invoiceData = invoiceData)
+        addInvoice(invoiceData)
     else:
         st.error("Everything has to be filled.")
 
