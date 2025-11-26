@@ -57,14 +57,12 @@ def createDatabase():
     )
     ''')
 
-    cursor.execute(
-        '''
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS sessions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
             FOREIGN KEY (username) REFERENCES clients(id)
         )
-        '''
-    )
+        ''')
 
     return conn, cursor

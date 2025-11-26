@@ -24,6 +24,22 @@ def getClients():
         "address": client[5]
     } for client in clients]
 
+@router.get('/{user_id}', response_model = List[Client])
+
+def getUserClients(user_id : int):
+    conn = getDBConnection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, user_id, name, email, phone, address FROM clients WHERE user_id=?", (user_id,))
+    clients = cursor.fetchall()
+    return [{
+        "id": client[0],
+        "user_id": client[1],
+        "name": client[2],
+        "email": client[3],
+        "phone": client[4],
+        "address": client[5]
+    } for client in clients]
+
 @router.post("/", response_model = Client)
 def createClient(client: ClientCreate):
     conn = getDBConnection()
@@ -57,7 +73,7 @@ def createClient(client: ClientCreate):
     finally:
         conn.close()
 
-@router.put("/{user_id}", response_model=Client)
+@router.put("/{client_id}", response_model=Client)
 def updateClient(client_id: int, client: ClientCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
@@ -72,7 +88,7 @@ def updateClient(client_id: int, client: ClientCreate):
     conn.close()
     return Client(id=client_id, **client.model_dump())
 
-@router.delete("/{user_id}", response_model=dict)
+@router.delete("/{client_id}", response_model=dict)
 def deleteClient(client_id: int):
     conn = getDBConnection()
     cursor = conn.cursor()

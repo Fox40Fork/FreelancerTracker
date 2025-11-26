@@ -55,7 +55,7 @@ def createProject(project: ProjectCreate):
     finally:
         conn.close()
 
-@router.put("/{user_id}", response_model=Project)
+@router.put("/{project_id}", response_model=Project)
 def updateProject(project_id: int, project: ProjectCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
@@ -70,7 +70,7 @@ def updateProject(project_id: int, project: ProjectCreate):
     conn.close()
     return Project(id=project_id, **project.model_dump())
 
-@router.delete("/{user_id}", response_model=dict)
+@router.delete("/{project_id}", response_model=dict)
 def deleteProject(project_id: int):
     conn = getDBConnection()
     cursor = conn.cursor()

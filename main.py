@@ -1,7 +1,7 @@
 #FastAPI
 
 from fastapi import FastAPI
-from routers import clients, invoices, users, projects, auth
+from routers import clients, invoices, users, projects, sessions
 from database import createDatabase
 
 app = FastAPI(
@@ -18,3 +18,4 @@ app.include_router(clients.router, prefix="/clients", tags=["clients"])
 app.include_router(invoices.router, prefix="/invoices", tags=["invoices"])
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(projects.router, prefix="/projects", tags=["projects"])
+app.include_router(sessions.router, prefix="/sessions", tags=["sessions"])

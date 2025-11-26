@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 from dotenv import load_dotenv
 import os
+from utils import logout, login, register, is_authenticated, getUserByName
 
 st.set_page_config(page_title="Clients")
 st.sidebar.header("Clients")
@@ -15,9 +16,9 @@ st.write("Manage your clients")
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
 
-def getClients():
+def getClients(user_id : int):
     try:
-        response = requests.get(f"{BASE_URL}/clients/")
+        response = requests.get(f"{BASE_URL}/clients/{user_id}")
         response.raise_for_status()  # Raises an exception for non-200 responses
         try:
             return response.json()
@@ -78,65 +79,87 @@ def deleteClient(user_id):
         return None
 
 # User Interface
-clients = getClients()
+if not is_authenticated():
+    st.header("Welcome to Freelancer Invoice Tracker")
+    st.write("Please log in or register to access the page.")
 
-def get_client_by_name(name, clients):  #get every client
-    return next((c for c in clients if c['name'] == name), None)
+    tab1, tab2 = st.tabs(["Login", "Register"])
+
+    with tab1:
+        login()
+
+    with tab2:
+        register()
+
+    st.stop()
+if is_authenticated():
+    user = getUserByName(st.session_state["username"])[0]
+    userId = user["id"]
+
+    clients = getClients(userId)
+
+    if st.sidebar.button("Logout", type="primary", use_container_width=True):
+        logout()
+
+    def get_client_by_name(name, clients):  #get every client
+        return next((c for c in clients if c['name'] == name), None)
 
 
-if clients:  #show clients
-    st.subheader("Client List")
-    df = pd.DataFrame(clients)
-    st.dataframe(df)
-else:
-    st.write("No clients found.")
-
-st.subheader("Add New Client") #as the subheader suggests, add new client
-userId = st.number_input("User ID", min_value=1, step=1) # !!! This has to be removed since I have to make a Login system, for now inserted manually
-name = st.text_input("Client Name")
-email = st.text_input("Email")
-phone = st.text_input("Phone")
-address = st.text_input("Address")
-
-if st.button("Add Client"):
-    if userId and name.strip():
-        clientData = {  #data from the client just added
-            "user_id" : userId,
-            "name" : name,
-            "email" : email,
-            "phone" : phone,
-            "address" : address
-        }
-        addClient(clientData) #send all the data to the database
+    if clients:  #show clients
+        st.subheader("Client List")
+        df = pd.DataFrame(clients, columns=["name", "email", "phone", "address"])
+        st.dataframe(df)
     else:
-        st.error("The User ID or Name are empty or already existing!")
+        st.write("No clients found.")
 
-if clients:
-    action = st.radio("Select Action", ["Update Client", "Delete Client"])
+    st.subheader("Add New Client") #as the subheader suggests, add new client
 
-    names = [c['name'] for c in clients]
-    selectedTitle = st.selectbox(f"Select Client to {action.split()[0]}", options=names)
+    name = st.text_input("Client Name")
+    email = st.text_input("Email")
+    phone = st.text_input("Phone")
+    address = st.text_input("Address")
 
-    if selectedTitle:
-        client = get_client_by_name(selectedTitle, clients)
+    if st.button("Add Client"):
+        if userId and name.strip():
+            clientData = {  #data from the client just added
+                "user_id" : userId,
+                "name" : name,
+                "email" : email,
+                "phone" : phone,
+                "address" : address
+            }
+            addClient(clientData) #send all the data to the database
+            st.rerun()
+        else:
+            st.error("The User ID or Name are empty or already existing!")
 
-        if action == "Update Client":
-            updated_userId = st.number_input("User ID", min_value=1, step = 1, value=client['user_id'])
-            updated_name = st.text_input("Name", value=client['name'])
-            updated_email = st.text_input("Email", value=client['email'])
-            updated_phone = st.text_input("Phone Number", value=client.get('phone'))
-            updated_address = st.text_input("Address", value=client['address'])
+    if clients:
+        action = st.radio("Select Action", ["Update Client", "Delete Client"])
 
-            if st.button("Update Client"):
-                clientInformation = {
-                    "user_id" : updated_userId,
-                    "name" : updated_name,
-                    "email" : updated_email,
-                    "phone" : updated_phone,
-                    "address" : updated_address
-                }
-                updateClient(updated_userId, clientInformation)
+        names = [c['name'] for c in clients]
+        selectedTitle = st.selectbox(f"Select Client to {action.split()[0]}", options=names)
 
-        elif action == "Delete Client":
-            if st.button("Delete Client"):
-                deleteClient(client['id'])
+        if selectedTitle:
+            client = get_client_by_name(selectedTitle, clients)
+
+            if action == "Update Client":
+                updated_name = st.text_input("Name", value=client['name'])
+                updated_email = st.text_input("Email", value=client['email'])
+                updated_phone = st.text_input("Phone Number", value=client.get('phone'))
+                updated_address = st.text_input("Address", value=client['address'])
+
+                if st.button("Update Client"):
+                    clientInformation = {
+                        "user_id" : client["user_id"],
+                        "name" : updated_name,
+                        "email" : updated_email,
+                        "phone" : updated_phone,
+                        "address" : updated_address
+                    }
+                    updateClient(client["id"], clientInformation)
+                    st.rerun()
+
+            elif action == "Delete Client":
+                if st.button("Delete Client"):
+                    deleteClient(client['id'])
+                    st.rerun()

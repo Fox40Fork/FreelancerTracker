@@ -22,6 +22,19 @@ def getUsers():
         "password": user[3]
     } for user in users]
 
+@router.get('/{username}', response_model = List[User])
+def getUserByName(username: str):
+    conn = getDBConnection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username, email, password FROM users WHERE username=?", (username,) )
+    users = cursor.fetchall()
+    return [{
+        "id": user[0],
+        "username": user[1],
+        "email": user[2],
+        "password": user[3]
+    } for user in users]
+
 @router.post("/", response_model = User)
 def createUser(user: UserCreate):
     conn = getDBConnection()
@@ -39,9 +52,9 @@ def updateUser(id: int, user: UserCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
     cursor.execute(
-        "UPDATE invoices SET id = ?, username = ?, email = ?, password = ?"
+        "UPDATE users SET username = ?, email = ?, password = ?"
         "WHERE id = ?",
-        (user.id, user.username, user.email, user.password))
+        (user.username, user.email, user.password, id))
     if cursor.rowcount == 0:
         conn.close()
         raise HTTPException(status_code=404, detail="User not found")
@@ -50,7 +63,7 @@ def updateUser(id: int, user: UserCreate):
     return User(id=id, **user.dict())
 
 @router.delete("/{id}", response_model=dict)
-def deleteUser(invoice_number: int):
+def deleteUser(id: int):
     conn = getDBConnection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM users WHERE id = ?", (id,))

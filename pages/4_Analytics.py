@@ -7,8 +7,9 @@ from datetime import datetime
 from dotenv import load_dotenv
 from collections import defaultdict, Counter
 import os
+from utils import logout, login, register, is_authenticated, getUserByName
 
-st.set_page_config(page_title="Analytics")
+st.set_page_config(page_title="Analytics 💰")
 st.sidebar.header("Analytics")
 
 st.markdown("# Analytics")
@@ -25,9 +26,9 @@ st.write("Detailed statistics for your business")
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
 
-def getClients():
+def getClients(user_id : int):
     try:
-        response = requests.get(f"{BASE_URL}/clients/")
+        response = requests.get(f"{BASE_URL}/clients/{user_id}")
         response.raise_for_status()  # Raises an exception for non-200 responses
         try:
             return response.json()
@@ -45,9 +46,9 @@ def getClients():
 # ----------
 #
 
-def getInvoices():
+def getInvoices(user_id : int):
     try:
-        response = requests.get(f"{BASE_URL}/invoices/")
+        response = requests.get(f"{BASE_URL}/invoices/{user_id}")
         response.raise_for_status()  # Raise an exception for HTTP errors
         try:
             return response.json()
@@ -65,8 +66,11 @@ def getInvoices():
 # ----------
 #
 
-invoices = getInvoices()
-clients = getClients()
+user = getUserByName(st.session_state["username"])[0]
+userId = user["id"]
+
+invoices = getInvoices(userId)
+clients = getClients(userId)
 
 def get_invoices_by_number(number, invoices):
     return next((i for i in invoices if i['invoice_number'] == number), None)
@@ -88,13 +92,13 @@ for invoice in invoices:
     monthKey = dateObj.strftime('%Y-%m')
     monthlyIncome[monthKey] = monthlyIncome.get(monthKey, 0) + invoice['amount']
 monthlyIncome = dict(sorted(monthlyIncome.items())) #Sort back into dict
-totalMonthly = np.sum(monthlyIncome)
+totalMonthly = np.sum(list(monthlyIncome.values()))
 
 #Total income by client calculation
 
 clientIncome = defaultdict(float)
 for invoice in invoices:
-    clientIncome[invoice['client_id']] += invoice['amount'] #Fix: add client_id to the invoices database
+    clientIncome[invoice['client_id']] += invoice['amount']
 clientIncome = dict(clientIncome) #Sort back into dict yet again lol
 bestClient = np.max(clientIncome)
 
@@ -102,32 +106,53 @@ bestClient = np.max(clientIncome)
 
 statusCounts = Counter(invoice['status'] for invoice in invoices)
 
+#Total clients
+
+countClients = Counter(client['name'] for client in clients)
+totalClients = len(clients)
+
 #
 # ----------
 # USER INTERFACE
 # ----------
 #
 
-st.subheader("Monthly Earnings")
+if not is_authenticated():
+    st.header("Welcome to Freelancer Invoice Tracker")
+    st.write("Please log in or register to access the page.")
 
-df = pd.DataFrame(list(monthlyIncome.items()), columns=['Month', 'Income'])
-fig = px.line(df, x='Month', y='Income', title='Monthly Salary')
-st.plotly_chart(fig)
+    tab1, tab2 = st.tabs(["Login", "Register"])
 
-st.write(f"Earnings this month: {totalMonthly}")
-st.write(f"Total earnings: {totalMoney}")
+    with tab1:
+        login()
 
-st.subheader("Total Earnings by Client")
+    with tab2:
+        register()
 
-df = pd.DataFrame(list(clientIncome.items()), columns=['Client', 'Income'])
-fig = px.pie(df, title='Total Earnings by Client')
-st.plotly_chart(fig)
+    st.stop()
 
-st.write(f"Amount of clients: ")
-st.write(f"Your best client: {bestClient}")
+if is_authenticated():
+    if st.sidebar.button("Logout", type="primary", use_container_width=True):
+        logout()
+    st.subheader("Monthly Earnings 💵")
 
-st.subheader("Invoice Status")
+    df = pd.DataFrame(list(monthlyIncome.items()), columns=['Month', 'Income'])
+    fig = px.line(df, x='Month', y='Income', title='Monthly Salary')
+    st.plotly_chart(fig)
 
-df = pd.DataFrame(list(statusCounts.items()), columns=['Status', 'Count'])
-fig = px.bar(df, x='Status', y='Count', title='Paid vs Unpaid Invoices', color='Status')
-st.plotly_chart(fig)
+    st.write(f"Earnings this month: {totalMonthly}")
+    st.write(f"Total earnings: {totalMoney}")
+
+    st.subheader("Total Earnings by Client 🧔")
+
+    df = pd.DataFrame(list(clientIncome.items()), columns=['Client', 'Income'])
+    fig = px.pie(df, names = "Client", values = "Income", title='Total Earnings by Client')
+    st.plotly_chart(fig)
+
+    st.write(f"Total clients: {totalClients}")
+
+    st.subheader("Invoice Status 🧾")
+
+    df = pd.DataFrame(list(statusCounts.items()), columns=['Status', 'Count'])
+    fig = px.bar(df, x='Status', y='Count', title='Paid vs Unpaid Invoices', color='Status')
+    st.plotly_chart(fig)

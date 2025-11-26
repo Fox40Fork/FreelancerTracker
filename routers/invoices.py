@@ -23,6 +23,21 @@ def getInvoices():
         "status": invoice[5]
     } for invoice in invoices]
 
+@router.get('/{user_id}', response_model = List[Invoice])
+def getUserInvoices(user_id: int):
+    conn = getDBConnection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, invoice_number, client_id, amount, date, status FROM invoices WHERE client_id IN (SELECT id FROM clients WHERE user_id=?)", (user_id,))
+    invoices = cursor.fetchall()
+    return [{
+        "id": invoice[0],
+        "invoice_number": invoice[1],
+        "client_id": invoice[2],
+        "amount": invoice[3],
+        "date": invoice[4],
+        "status": invoice[5]
+    } for invoice in invoices]
+
 @router.post("/", response_model = Invoice)
 def createInvoice(invoice: InvoiceCreate):
     conn = getDBConnection()
@@ -57,7 +72,7 @@ def createInvoice(invoice: InvoiceCreate):
         conn.close()
 
 
-@router.put("/{invoice_number}", response_model=Invoice)
+@router.put("/{invoice_id}", response_model=Invoice)
 def updateInvoice(invoice_id: int, invoice: InvoiceCreate):
     conn = getDBConnection()
     cursor = conn.cursor()
@@ -72,7 +87,7 @@ def updateInvoice(invoice_id: int, invoice: InvoiceCreate):
     conn.close()
     return Invoice(id=invoice_id, **invoice.model_dump())
 
-@router.delete("/{invoice_number}", response_model=dict)
+@router.delete("/{invoice_id}", response_model=dict)
 def deleteInvoice(invoice_id: int):
     conn = getDBConnection()
     cursor = conn.cursor()

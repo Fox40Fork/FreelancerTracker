@@ -6,7 +6,7 @@ from datetime import date
 class InvoiceBase(BaseModel):
     invoice_number: int
     client_id: int
-    amount: Decimal
+    amount: float
     date: date
     status: str
 

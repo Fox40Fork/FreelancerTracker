@@ -6,6 +6,19 @@ import os
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
 
+def getUserByName(username: str):
+    try:
+        response = requests.get(f"{BASE_URL}/users/{username}")
+        response.raise_for_status()  # Raises an exception for non-200 responses
+        try:
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            st.error("Response from server is not valid JSON.")
+            st.write("Response text:", response.text[:500])  # Preview the response
+            return []
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch users: {e}")
+        return []
 
 def login():
     def getUsers():
@@ -54,7 +67,7 @@ def login():
     st.subheader("Log In")
 
     usernameInput = st.text_input("Username")
-    passwordInput = st.text_input("Password")
+    passwordInput = st.text_input("Password", type="password")
 
     if st.button("Log In"):
         users = getUsers()
@@ -65,6 +78,8 @@ def login():
             }
             addSession(sessionData)
             st.session_state["username"] = usernameInput  # Store username in session state
+
+            st.rerun()
         else:
             st.error("Invalid login")
 
@@ -103,7 +118,7 @@ def register():
 
     username = st.text_input("Enter your Username")
     email = st.text_input("Enter your E-Mail")
-    password = st.text_input("Enter your Password")
+    password = st.text_input("Enter your Password", type="password")
 
     if st.button("Register"):
         userInfo = {
@@ -112,6 +127,7 @@ def register():
             "password": password
         }
         addUser(userInfo)
+        st.rerun()
 
 
 def logout():
