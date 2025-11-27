@@ -140,7 +140,7 @@ if is_authenticated():
     fig = px.line(df, x='Month', y='Income', title='Monthly Salary')
     st.plotly_chart(fig)
 
-    st.write(f"Earnings this month: {totalMonthly}")
+    st.write(f"Average salary: {averageSalary}")
     st.write(f"Total earnings: {totalMoney}")
 
     st.subheader("Total Earnings by Client 🧔")
@@ -156,3 +156,18 @@ if is_authenticated():
     df = pd.DataFrame(list(statusCounts.items()), columns=['Status', 'Count'])
     fig = px.bar(df, x='Status', y='Count', title='Paid vs Unpaid Invoices', color='Status')
     st.plotly_chart(fig)
+
+    st.subheader("Overall 🌐")
+
+    if totalMoney <= 2500:
+        st.write("You're just getting started! Keep believing, and your business will move forward!")
+    elif totalMoney <= 10000:
+        st.write("Great progress! You're laying down a strong foundation for future success.")
+    elif totalMoney <= 20000:
+        st.write("Solid growth! Your performance is gaining real traction and momentum.")
+    elif totalMoney <= 50000:
+        st.write("Impressive milestone! You're establishing consistency and building credibility.")
+    elif totalMoney <= 100000:
+        st.write("Fantastic achievement! Your overall performance shows you're scaling up successfully.")
+    elif totalMoney > 100000:
+        st.write("Outstanding! Your performance places you among the top achievers — keep leading the way!")
